@@ -1,12 +1,17 @@
-import { CreateUserParams, SignInParams, User } from "@/type";
-import { Account, Avatars, Client, Databases, ID, Query } from "react-native-appwrite";
+import { CreateUserParams, GetMenuParams, SignInParams, User } from "@/type";
+import { Account, Avatars, Client, Databases, ID, Query, Storage } from "react-native-appwrite";
 
 export const appwriteConfig = {
     endpoint: process.env.EXPO_PUBLIC_APPWRITE_ENDPOINT,
     platform: "com.rizvi.foodapp",
     projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID,
     databaseId: "68940b6b002795b72a79",
-    userCollectionId: "68940b8d00128a87eadb"
+    bucketId: "6895270d003da60bc591",
+    userCollectionId: "68940b8d00128a87eadb",
+    categoryCollectionId: "6895243100251d6d0266",
+    menuCollectionId: "689524a500273040d4ae",
+    customizationCollectionId: "689525ad0025d931132b",
+    menuCustomizationCollectionId: "68952648002da88ef4a8",
 }
 
 export const client = new Client();
@@ -17,6 +22,7 @@ client
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const avatar = new Avatars(client);
+export const storage = new Storage(client);
 
 export const createUser = async ({email, name, password}: CreateUserParams) => {
     try {
@@ -66,5 +72,33 @@ export const getCurrentUser = async () => {
     } catch (error) {
         console.error("Failed to get current user:", error);
         throw new Error("Failed to get current user: " + error);
+    }
+}
+
+export const getMenu = async ({category, query}: GetMenuParams) => {
+    try {
+        const queries: string[] = []
+        if (category) {
+            queries.push(Query.equal("category", category))
+        }
+        if (query) {
+            queries.push(Query.search("name", query))
+        }
+        const menus = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.menuCollectionId, queries);
+        return menus.documents;
+    } catch (error) {
+        console.error("Failed to get menu:", error);
+        throw new Error("Failed to get menu: " + error);
+    }
+}
+
+export const getCategories = async () => {
+    try {
+        const categories = await databases.listDocuments(appwriteConfig.databaseId, appwriteConfig.categoryCollectionId);
+        return categories.documents;
+    } catch (error) {
+        console.error("Failed to get categories:", error);
+        throw new Error("Failed to get categories: " + error);
+        
     }
 }
